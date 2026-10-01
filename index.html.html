@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sam King</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{
+    --bg:#15130f;
+    --bg-soft:#1d1a14;
+    --card:#faf6ec;
+    --card-soft:#f0ead8;
+    --ink:#171410;
+    --ink-soft:#6b6252;
+    --cream:#f5f0e4;
+    --cream-soft:#b8ae98;
+    --gold:#c79a46;
+    --gold-deep:#8a6a2e;
+    --brick:#b23f2c;
+    --line:#2b271e;
+    --radius:14px;
+    --safe-top:env(safe-area-inset-top,0px);
+    --safe-bottom:env(safe-area-inset-bottom,0px);
+  }
+  *{box-sizing:border-box;}
+  html,body{height:100%;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--cream);
+    font-family:-apple-system,"Inter",system-ui,"Segoe UI",Roboto,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    padding-top:var(--safe-top);
+    padding-bottom:calc(var(--safe-bottom) + 90px);
+  }
+  ::-webkit-scrollbar{display:none;}
+
+  h1,h2,h3{
+    font-family:"Fraunces","Georgia",serif;
+    font-weight:600;
+    margin:0;
+  }
+
+  /* ---------- HEADER ---------- */
+  .topbar{
+    padding:18px 18px 10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:9px;
+  }
+  .brand-mark{
+    width:30px;height:30px;
+    border-radius:50%;
+    background:linear-gradient(145deg,var(--gold),var(--gold-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-size:15px;
+    flex-shrink:0;
+  }
+  .brand-text h1{font-size:19px;letter-spacing:.3px;color:var(--cream);line-height:1;}
+  .brand-text span{font-size:10.5px;color:var(--cream-soft);letter-spacing:1.5px;}
+  .cart-btn{
+    position:relative;
+    width:40px;height:40px;
+    border-radius:50%;
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    display:flex;align-items:center;justify-content:center;
+    font-size:17px;
+    color:var(--cream);
+  }
+  .cart-badge{
+    position:absolute;top:-4px;right:-4px;
+    background:var(--brick);
+    color:#fff;
+    font-size:10px;font-weight:700;
+    min-width:17px;height:17px;border-radius:9px;
+    display:flex;align-items:center;justify-content:center;
+    padding:0 4px;
+  }
+
+  /* ---------- SEARCH ---------- */
+  .search-wrap{padding:4px 18px 14px;}
+  .search-box{
+    display:flex;align-items:center;gap:8px;
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:11px 14px;
+  }
+  .search-box input{
+    flex:1;background:none;border:none;outline:none;
+    color:var(--cream);font-size:14.5px;font-family:inherit;
+  }
+  .search-box input::placeholder{color:var(--cream-soft);}
+
+  /* ---------- FILTER PILLS ---------- */
+  .pills{
+    display:flex;gap:8px;
+    padding:0 18px 18px;
+    overflow-x:auto;
+    white-space:nowrap;
+  }
+  .pill{
+    flex-shrink:0;
+    padding:8px 16px;
+    border-radius:999px;
+    border:1px solid var(--line);
+    background:var(--bg-soft);
+    color:var(--cream-soft);
+    font-size:13px;font-weight:600;
+    transition:background .15s, color .15s, border-color .15s;
+  }
+  .pill.active{
+    background:var(--gold);
+    border-color:var(--gold);
+    color:#1a1409;
+  }
+
+  /* ---------- GRID ---------- */
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:12px;
+    padding:0 18px;
+  }
+  .card{
+    background:var(--card);
+    border-radius:var(--radius);
+    overflow:hidden;
+    color:var(--ink);
+  }
+  .card-img{
+    width:100%;aspect-ratio:1/1.15;
+    background:var(--card-soft) center/cover no-repeat;
+    position:relative;
+  }
+  .tag-sale{
+    position:absolute;top:8px;left:8px;
+    background:var(--brick);color:#fff;
+    font-size:10px;font-weight:700;
+    padding:3px 7px;border-radius:6px;
+    letter-spacing:.3px;
+  }
+  .card-body{padding:10px 11px 12px;}
+  .card-name{
+    font-size:13px;font-weight:600;
+    line-height:1.25;
+    margin-bottom:5px;
+    display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  .price-row{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;}
+  .price-now{font-size:14.5px;font-weight:700;color:var(--gold-deep);}
+  .price-old{font-size:11.5px;color:var(--ink-soft);text-decoration:line-through;}
+
+  .empty{
+    text-align:center;padding:60px 20px;color:var(--cream-soft);
+  }
+  .empty h3{color:var(--cream);margin-bottom:6px;font-size:17px;}
+  .empty p{font-size:13.5px;margin:0;}
+
+  /* ---------- DETAIL VIEW ---------- */
+  .view{display:none;}
+  .view.active{display:block;}
+  #view-list.active{display:block;}
+
+  .detail-gallery{
+    display:flex;overflow-x:auto;scroll-snap-type:x mandatory;
+  }
+  .detail-gallery img{
+    width:100%;flex-shrink:0;scroll-snap-align:start;
+    aspect-ratio:1/1.05;object-fit:cover;
+  }
+  .dots{display:flex;justify-content:center;gap:5px;padding:10px 0 4px;}
+  .dot{width:5px;height:5px;border-radius:50%;background:var(--line);}
+  .dot.active{background:var(--gold);}
+
+  .detail-body{padding:16px 18px 10px;}
+  .detail-name{font-size:21px;color:var(--cream);margin-bottom:8px;line-height:1.2;}
+  .detail-price{font-size:19px;font-weight:700;color:var(--gold);}
+  .detail-price .price-old{font-size:14px;margin-left:8px;color:var(--cream-soft);}
+
+  .option-block{margin-top:20px;}
+  .option-label{
+    font-size:11.5px;letter-spacing:.8px;color:var(--cream-soft);
+    margin-bottom:9px;font-weight:600;
+  }
+  .option-pills{display:flex;gap:8px;flex-wrap:wrap;}
+  .opt{
+    padding:8px 15px;border-radius:999px;
+    border:1px solid var(--line);background:var(--bg-soft);
+    color:var(--cream);font-size:13.5px;font-weight:600;
+  }
+  .opt.active{background:var(--gold);border-color:var(--gold);color:#1a1409;}
+
+  /* ---------- CART ---------- */
+  .cart-item{
+    display:flex;gap:12px;
+    padding:14px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  .cart-item img{
+    width:62px;height:72px;border-radius:10px;object-fit:cover;flex-shrink:0;
+    background:var(--bg-soft);
+  }
+  .cart-item-info{flex:1;min-width:0;}
+  .cart-item-name{font-size:14px;font-weight:600;color:var(--cream);margin-bottom:3px;}
+  .cart-item-meta{font-size:12px;color:var(--cream-soft);margin-bottom:6px;}
+  .cart-item-price{font-size:13.5px;font-weight:700;color:var(--gold);}
+  .cart-item-remove{
+    background:none;border:none;color:var(--cream-soft);
+    font-size:19px;line-height:1;align-self:flex-start;padding:2px;
+  }
+
+  .cart-summary{
+    padding:18px;
+    display:flex;justify-content:space-between;align-items:baseline;
+  }
+  .cart-summary .label{font-size:13.5px;color:var(--cream-soft);}
+  .cart-summary .total{font-size:20px;font-weight:700;color:var(--gold);}
+
+  /* ---------- CHECKOUT ---------- */
+  .form-wrap{padding:18px;}
+  .field{margin-bottom:16px;}
+  .field label{
+    display:block;font-size:11.5px;letter-spacing:.8px;
+    color:var(--cream-soft);margin-bottom:7px;font-weight:600;
+  }
+  .field input,.field textarea{
+    width:100%;padding:12px 14px;
+    background:var(--bg-soft);border:1px solid var(--line);
+    border-radius:10px;color:var(--cream);font-size:14.5px;
+    font-family:inherit;outline:none;
+  }
+  .field textarea{resize:none;min-height:70px;}
+  .order-recap{
+    background:var(--bg-soft);border:1px solid var(--line);
+    border-radius:12px;padding:14px;margin-bottom:18px;
+  }
+  .order-recap-row{
+    display:flex;justify-content:space-between;
+    font-size:13px;color:var(--cream-soft);padding:4px 0;
+  }
+  .order-recap-row.total{
+    color:var(--cream);font-weight:700;font-size:14.5px;
+    border-top:1px solid var(--line);margin-top:6px;padding-top:10px;
+  }
+
+  .section-title{
+    padding:14px 18px 4px;
+    font-size:17px;color:var(--cream);
+  }
+
+  .confirm-screen{
+    text-align:center;padding:90px 30px;
+  }
+  .confirm-screen .mark{font-size:44px;margin-bottom:14px;}
+  .confirm-screen h2{color:var(--cream);font-size:20px;margin-bottom:8px;}
+  .confirm-screen p{color:var(--cream-soft);font-size:13.5px;line-height:1.5;margin:0;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">👑</div>
+    <div class="brand-text">
+      <h1>Sam King</h1>
+      <span>KIYIM DO'KONI</span>
+    </div>
+  </div>
+  <button class="cart-btn" onclick="openCart()">
+    🛍
+    <span class="cart-badge" id="cart-badge" style="display:none">0</span>
+  </button>
+</div>
+
+<!-- LIST VIEW -->
+<div class="view active" id="view-list">
+  <div class="search-wrap">
+    <div class="search-box">
+      <span>🔍</span>
+      <input id="search-input" placeholder="Mahsulot qidirish..." oninput="onSearch()">
+    </div>
+  </div>
+  <div class="pills" id="pills"></div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<!-- DETAIL VIEW -->
+<div class="view" id="view-detail"></div>
+
+<!-- CART VIEW -->
+<div class="view" id="view-cart">
+  <h2 class="section-title">Savat</h2>
+  <div id="cart-list"></div>
+  <div class="cart-summary" id="cart-summary" style="display:none">
+    <span class="label">Jami</span>
+    <span class="total" id="cart-total">0 so'm</span>
+  </div>
+</div>
+
+<!-- CHECKOUT VIEW -->
+<div class="view" id="view-checkout">
+  <h2 class="section-title">Buyurtma ma'lumotlari</h2>
+  <div class="form-wrap">
+    <div class="order-recap" id="checkout-recap"></div>
+    <div class="field">
+      <label>Ismingiz</label>
+      <input id="f-name" placeholder="Ism Familiya">
+    </div>
+    <div class="field">
+      <label>Telefon raqam</label>
+      <input id="f-phone" placeholder="+998 90 123 45 67" inputmode="tel">
+    </div>
+    <div class="field">
+      <label>Yetkazib berish manzili</label>
+      <textarea id="f-address" placeholder="Shahar, tuman, ko'cha, uy"></textarea>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIRM VIEW -->
+<div class="view" id="view-confirm">
+  <div class="confirm-screen">
+    <div class="mark">✅</div>
+    <h2>Buyurtma qabul qilindi</h2>
+    <p>Tez orada operatorimiz siz bilan bog'lanadi.<br>Sam King tanlaganingiz uchun rahmat!</p>
+  </div>
+</div>
+
+<script>
+/* ==============================
+   MAHSULOTLAR MA'LUMOTI
+   ============================== */
+const PRODUCTS = {
+  erkaklar: {
+    title: "Erkaklar",
+    items: [
+      { id:"erk1", name:"Klassik ko'ylak", price:150000, salePrice:99000, images:["images/erkaklar1.jpg"], sizes:["S","M","L","XL"], colors:[] },
+      { id:"erk2", name:"Sport shim", price:120000, images:["images/erkaklar2.jpg"], sizes:["M","L","XL"], colors:[] }
+    ]
+  },
+  ayollar: {
+    title: "Ayollar",
+    items: [
+      { id:"ayo1", name:"Yozgi ko'ylak", price:180000, images:["images/ayollar1.jpg"], sizes:["XS","S","M"], colors:[] },
+      { id:"ayo2", name:"Blузка", price:95000, images:["images/ayollar2.jpg"], sizes:[], colors:["Oq","Qora"] }
+    ]
+  },
+  bolalar: {
+    title: "Bolalar",
+    items: [
+      { id:"bol1", name:"Bolalar kombinezoni", price:80000, images:["images/bolalar1.jpg"], sizes:[], colors:[] }
+    ]
+  }
+};
+
+/* ==============================
+   HOLAT (STATE)
+   ============================== */
+const tg = window.Telegram ? window.Telegram.WebApp : null;
+let activeCategory = "all";
+let searchQuery = "";
+let cart = [];
+let selection = {};
+let viewStack = ["view-list"];
+let currentDetailId = null;
+
+function allItems(){
+  let list = [];
+  for (const key in PRODUCTS){
+    PRODUCTS[key].items.forEach(it => list.push({...it, category:key}));
+  }
+  return list;
+}
+function findItem(id){ return allItems().find(i => i.id === id); }
+function fmt(n){ return n.toLocaleString("ru-RU").replace(/,/g," ") + " so'm"; }
+function effectivePrice(item){ return item.salePrice ?? item.price; }
+
+/* ==============================
+   RENDER: FILTER PILLS
+   ============================== */
+function renderPills(){
+  const wrap = document.getElementById("pills");
+  const cats = [["all","Hammasi"], ...Object.keys(PRODUCTS).map(k => [k, PRODUCTS[k].title]), ["sale","🔥 Aksiya"]];
+  wrap.innerHTML = cats.map(([key,label]) =>
+    `<button class="pill ${activeCategory===key?'active':''}" onclick="selectCategory('${key}')">${label}</button>`
+  ).join("");
+}
+function selectCategory(key){
+  activeCategory = key;
+  renderPills();
+  renderGrid();
+}
+function onSearch(){
+  searchQuery = document.getElementById("search-input").value.trim().toLowerCase();
+  renderGrid();
+}
+
+/* ==============================
+   RENDER: GRID
+   ============================== */
+function renderGrid(){
+  let items = allItems();
+  if (activeCategory === "sale") items = items.filter(i => i.salePrice);
+  else if (activeCategory !== "all") items = items.filter(i => i.category === activeCategory);
+  if (searchQuery) items = items.filter(i => i.name.toLowerCase().includes(searchQuery));
+
+  const grid = document.getElementById("grid");
+  if (!items.length){
+    grid.innerHTML = "";
+    grid.insertAdjacentHTML("afterend", "");
+    grid.outerHTML = `<div class="grid" id="grid"></div>`;
+    document.getElementById("grid").innerHTML = "";
+    document.querySelector(".search-wrap").insertAdjacentHTML("afterend", "");
+  }
+  grid.innerHTML = items.length ? items.map(cardHtml).join("") :
+    `<div class="empty" style="grid-column:1/-1"><h3>Hech narsa topilmadi</h3><p>Boshqa nom bilan qidirib ko'ring</p></div>`;
+}
+function cardHtml(item){
+  const price = effectivePrice(item);
+  return `
+    <div class="card" onclick="openDetail('${item.id}')">
+      <div class="card-img" style="background-image:url('${item.images[0]}')">
+        ${item.salePrice ? '<span class="tag-sale">AKSIYA</span>' : ''}
+      </div>
+      <div class="card-body">
+        <div class="card-name">${item.name}</div>
+        <div class="price-row">
+          <span class="price-now">${fmt(price)}</span>
+          ${item.salePrice ? `<span class="price-old">${fmt(item.price)}</span>` : ''}
+        </div>
+      </div>
+    </div>`;
+}
+
+/* ==============================
+   RENDER: DETAIL
+   ============================== */
+function openDetail(id){
+  currentDetailId = id;
+  const item = findItem(id);
+  if (!selection[id]) selection[id] = { size:null, color:null };
+  const sel = selection[id];
+
+  const gallery = item.images.map(src => `<img src="${src}">`).join("");
+  const dots = item.images.map((_, i) => `<span class="dot ${i===0?'active':''}"></span>`).join("");
+
+  const sizesHtml = item.sizes.length ? `
+    <div class="option-block">
+      <div class="option-label">O'LCHAM</div>
+      <div class="option-pills">
+        ${item.sizes.map(s => `<button class="opt ${sel.size===s?'active':''}" onclick="pickOption('${id}','size','${s}')">${s}</button>`).join("")}
+      </div>
+    </div>` : "";
+
+  const colorsHtml = item.colors.length ? `
+    <div class="option-block">
+      <div class="option-label">RANG</div>
+      <div class="option-pills">
+        ${item.colors.map(c => `<button class="opt ${sel.color===c?'active':''}" onclick="pickOption('${id}','color','${c}')">${c}</button>`).join("")}
+      </div>
+    </div>` : "";
+
+  document.getElementById("view-detail").innerHTML = `
+    <div class="detail-gallery">${gallery}</div>
+    ${item.images.length>1 ? `<div class="dots">${dots}</div>` : ''}
+    <div class="detail-body">
+      <h2 class="detail-name">${item.name}</h2>
+      <div class="detail-price">
+        ${fmt(effectivePrice(item))}
+        ${item.salePrice ? `<span class="price-old">${fmt(item.price)}</span>` : ''}
+      </div>
+      ${sizesHtml}
+      ${colorsHtml}
+    </div>
+  `;
+  pushView("view-detail");
+  updateMainButton();
+}
+function pickOption(id, kind, value){
+  selection[id][kind] = selection[id][kind] === value ? null : value;
+  openDetail(id);
+}
+
+/* ==============================
+   SAVAT
+   ============================== */
+function addCurrentToCart(){
+  const item = findItem(currentDetailId);
+  const sel = selection[currentDetailId] || {};
+  if (item.sizes.length && !sel.size){ tg && tg.showAlert("Iltimos, o'lchamni tanlang"); return; }
+  if (item.colors.length && !sel.color){ tg && tg.showAlert("Iltimos, rangni tanlang"); return; }
+
+  cart.push({
+    id: item.id, name: item.name, price: effectivePrice(item),
+    image: item.images[0], size: sel.size, color: sel.color
+  });
+  selection[currentDetailId] = { size:null, color:null };
+  updateCartBadge();
+  tg && tg.HapticFeedback && tg.HapticFeedback.notificationOccurred("success");
+  popView();
+}
+function removeFromCart(index){
+  cart.splice(index,1);
+  renderCart();
+  updateCartBadge();
+}
+function updateCartBadge(){
+  const badge = document.getElementById("cart-badge");
+  if (cart.length){ badge.style.display="flex"; badge.textContent = cart.length; }
+  else badge.style.display = "none";
+}
+function cartTotal(){ return cart.reduce((sum,i) => sum + i.price, 0); }
+
+function openCart(){
+  renderCart();
+  pushView("view-cart");
+  updateMainButton();
+}
+function renderCart(){
+  const list = document.getElementById("cart-list");
+  const summary = document.getElementById("cart-summary");
+  if (!cart.length){
+    list.innerHTML = `<div class="empty"><h3>Savat bo'sh</h3><p>Katalogdan mahsulot tanlang</p></div>`;
+    summary.style.display = "none";
+    return;
+  }
+  list.innerHTML = cart.map((c,i) => `
+    <div class="cart-item">
+      <img src="${c.image}">
+      <div class="cart-item-info">
+        <div class="cart-item-name">${c.name}</div>
+        <div class="cart-item-meta">${[c.size,c.color].filter(Boolean).join(" · ") || "Standart"}</div>
+        <div class="cart-item-price">${fmt(c.price)}</div>
+      </div>
+      <button class="cart-item-remove" onclick="removeFromCart(${i})">×</button>
+    </div>
+  `).join("");
+  summary.style.display = "flex";
+  document.getElementById("cart-total").textContent = fmt(cartTotal());
+}
+
+/* ==============================
+   CHECKOUT
+   ============================== */
+function openCheckout(){
+  const recap = document.getElementById("checkout-recap");
+  recap.innerHTML = cart.map(c => `
+    <div class="order-recap-row"><span>${c.name}${c.size?` (${c.size})`:''}</span><span>${fmt(c.price)}</span></div>
+  `).join("") + `<div class="order-recap-row total"><span>Jami</span><span>${fmt(cartTotal())}</span></div>`;
+  pushView("view-checkout");
+  updateMainButton();
+}
+function submitOrder(){
+  const name = document.getElementById("f-name").value.trim();
+  const phone = document.getElementById("f-phone").value.trim();
+  const address = document.getElementById("f-address").value.trim();
+
+  if (!name || !phone || !address){
+    tg && tg.showAlert("Iltimos, barcha maydonlarni to'ldiring");
+    return;
+  }
+
+  const order = {
+    type: "order",
+    items: cart,
+    total: cartTotal(),
+    name, phone, address
+  };
+
+  if (tg && tg.sendData){
+    tg.sendData(JSON.stringify(order));
+  }
+
+  pushView("view-confirm");
+  tg && tg.MainButton && tg.MainButton.hide();
+  tg && tg.BackButton && tg.BackButton.hide();
+  setTimeout(() => { tg && tg.close && tg.close(); }, 1800);
+}
+
+/* ==============================
+   VIEW NAVIGATSIYASI
+   ============================== */
+function pushView(id){
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  viewStack.push(id);
+  if (tg && tg.BackButton){
+    if (viewStack.length > 1) tg.BackButton.show();
+    else tg.BackButton.hide();
+  }
+  window.scrollTo(0,0);
+}
+function popView(){
+  if (viewStack.length <= 1) return;
+  viewStack.pop();
+  const id = viewStack[viewStack.length - 1];
+  document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if (tg && tg.BackButton){
+    if (viewStack.length > 1) tg.BackButton.show();
+    else tg.BackButton.hide();
+  }
+  updateMainButton();
+  window.scrollTo(0,0);
+}
+
+/* ==============================
+   TELEGRAM MAIN BUTTON
+   ============================== */
+function updateMainButton(){
+  if (!tg || !tg.MainButton) return;
+  const current = viewStack[viewStack.length - 1];
+  const mb = tg.MainButton;
+
+  mb.offClick(onMainButtonClick);
+  mb.onClick(onMainButtonClick);
+
+  if (current === "view-detail"){
+    mb.setText("SAVATGA QO'SHISH");
+    mb.show();
+  } else if (current === "view-cart" && cart.length){
+    mb.setText(`BUYURTMA BERISH — ${fmt(cartTotal())}`);
+    mb.show();
+  } else if (current === "view-checkout"){
+    mb.setText("BUYURTMANI YUBORISH");
+    mb.show();
+  } else {
+    mb.hide();
+  }
+}
+function onMainButtonClick(){
+  const current = viewStack[viewStack.length - 1];
+  if (current === "view-detail") addCurrentToCart();
+  else if (current === "view-cart") openCheckout();
+  else if (current === "view-checkout") submitOrder();
+}
+
+/* ==============================
+   ISHGA TUSHIRISH
+   ============================== */
+function init(){
+  if (tg){
+    tg.ready();
+    tg.expand();
+    tg.setHeaderColor && tg.setHeaderColor("#15130f");
+    tg.setBackgroundColor && tg.setBackgroundColor("#15130f");
+    tg.BackButton.onClick(popView);
+  }
+  renderPills();
+  renderGrid();
+  updateCartBadge();
+}
+init();
+</script>
+</body>
+</html>
